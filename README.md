@@ -44,40 +44,40 @@ ESLintはExpoのReactプラグインとの互換性のため9.39.5に固定し�
 
 2026-11-17の `npm audit` では、Expoの開発ツール `@expo/fingerprint` が依存するminimatchのDoS問題（GHSA-g3hv-75wg-m249）に由来するmoderate 3件を検出しています。外部入力を扱うアプリ機能はまだありませんが、開発時も信頼できないプロジェクトを処理しないでください。SDK 58の互換性を維持するため、SDKをダウングレードする `npm audit fix --force` や依存のメジャー強制上書きは行っていません。Expo側の対応版を追跡します。
 
-## Vercel Web Preview（Day 1.5）
+## Vercel Webデプロイ（Day 1.5）
 
-Expo Routerの `expo.web.output: static` を維持し、生成されたHTMLをそのまま配信します。`vercel.json`にビルド設定を置き、SPA向けの一括rewriteは使用しません。iOSの設定・依存関係は変更しません。
+Expo Routerの `expo.web.output: static` を維持し、`vercel.json` でWebビルドを定義しています。SPA用の一括rewriteは使いません。iOS向けコードと依存関係は変更していません。
 
 | 設定 | 値 |
 | --- | --- |
-| Framework Preset | Other（JSONではnull） |
-| Root Directory | `.`（Vercelプロジェクト側で指定） |
-| Install Command | `npm ci` |
-| Build Command | `npm run build:web` |
-| Output Directory | `dist` |
-| Node.js | 24.xを推奨 |
-| 環境変数 | 現時点では不要 |
+| Vercelチーム | masa's projects（Hobby） |
+| Project | `kondate-biyori` |
+| Framework | Other（`framework: null`） |
+| Root Directory | リポジトリ直下 |
+| Install | `npm ci` |
+| Build | `npm run build:web` |
+| Output | `dist` |
+| Node.js | 24.x |
+| 環境変数 | Day 1.5時点では不要 |
 
-### GitHub連携
+### GitHub連携と公開フロー
 
-1. Vercelの既存アカウント・チーム・プランを確認し、`iwasaki-hub/KondateBiyori`に既存プロジェクトが接続されていないか調べます。他プロジェクトを変更しません。
-2. 新規プロジェクト名は `kondate-biyori` を候補とし、対象アカウント・プラン・Previewの閲覧範囲を利用者に提示して承認を受けます。有料プランへの変更は行いません。
-3. 通常のImportはmainの初回Productionデプロイを開始する可能性があるため、承認なしにDeployを押さないでください。今回はProductionデプロイを作らず、プロジェクト作成とGit接続を分けて実施します。`vercel.json`の `git.deploymentEnabled.main: false` は、設定が存在するコミットのmain自動デプロイを無効にしますが、まだ設定がないmainの初回Importを保護するものではありません。
-4. 承認後、上表の設定・main自動デプロイ無効・PreviewのDeployment Protectionを確認してGit連携します。GitHub Appの承認が必要なら、対象リポジトリだけの権限を付与します。PreviewはVercel Authenticationで保護する方針です。認証を要するURLを一般公開するために保護を解除しないでください。
-5. featureブランチへのPushでPreviewを作り、PRのVercelチェックまたはVercelダッシュボードで対象ブランチ・コミット・環境Preview・ビルド成功を確認します。接続前にPush済みなら、そのブランチとコミットを指定してPreviewを作成します。mainへのマージやProductionへの昇格は行いません。
+- **Production**: `main` の内容を自動デプロイします。最初のProductionはPR #2を取り込んだ `main` (`e60a6649`) から作成済みです。公開URL: https://kondate-biyori-seven.vercel.app/ 。公開Web版は一般アクセス可能です。
+- **Preview**: PRのfeatureブランチごとにVercel Previewを生成し、ビルド・表示を確認します。Previewの認証保護はVercel側で有効にし、Productionには適用しません。
+- **Merge**: CI・Preview・必要なiPhone Safari確認が成功してからSquash Mergeします。マージによって `main` のProduction更新が走ります。
+- `main` の自動デプロイを禁止する `git.deploymentEnabled.main: false` は使用しません。VercelのIgnored Build Stepにも `main` スキップ設定を置きません。
+- `main` への直接Push、認証トークンのGitコミット、有料プラン変更、外部DBやAI課金APIへの無断接続は禁止です。
+- 本プロジェクトのHobby運用は開発・個人的な検証を対象とし、商用運用を始める前にプラン・利用規約を再評価します。
 
-Vercel CLIは必須のアプリ依存ではありません。必要な場合は `npx vercel@<確認済みバージョン> --version` で利用できます。CLI操作前にアカウントとリンク先を確認し、トークンをコマンド・README・Gitに記載しないでください。ローカルリンク情報・環境ファイルを含む `.vercel/` はGit管理から除外します。
+### PRのPreview検証
 
-### PRごとのPreview検証
+1. `npm ci`、`npm test`、`npx expo-doctor`、`npm run build:web` を実行し、静的HTMLと参照アセットを確認します。
+2. Vercelで対象PRブランチ・コミット・環境`Preview`を照合し、ビルドがREADYであることを確認します。
+3. 認証済みPreviewと公開ProductionのそれぞれでHTTP・アプリ名・JS/CSSアセット・404・重大エラーを確認します。保護されたPreviewの認証ページはアプリのエラーとは区別します。
+4. iPhone SafariでSafe Area、文字の折返し、横はみ出し、スクロール、大きい文字設定を目視確認し、PRに結果・URL・対象SHAを記載します。
+5. Previewが成功したPRのみmainにマージし、Production READY・公開URL HTTP 200とコミット一致を再確認します。ロールバックには対象マージコミットのrevertを優先します。
 
-- ローカルで `npm ci`、`npm test`、`npx expo-doctor`、`npm run build:web` を実行し、distのHTMLと参照JS/CSS/画像が存在することを確認します。
-- Previewの対象コミットとビルド成功、HTTPアクセス、ホームの「こんだて日和」、JS/CSS読込、404と重大なブラウザエラーがないことを確認します。CSSがHTML内にインライン出力される場合もあります。
-- Previewが保護されている場合はVercelにログインして閲覧します。未認証の401/認証画面と、アプリ自体のエラーを区別してください。
-- iPhone SafariでSafe Area、文字の折返し、横はみ出し、スクロール、大きい文字設定での読みやすさを確認してください。URL・結果・未確認項目をPRに記載します。
-
-ロールバックは未マージならPRを閉じ、マージ後ならPR変更をrevertします。設定をrevertする前に対象VercelプロジェクトのGit連携を解除し、意図しないmainデプロイを防いでください。作成済みPreviewの停止・削除は対象プロジェクトだけで実施します。
-
-参考: [ExpoのWeb公開](https://docs.expo.dev/guides/publishing-websites/)、[Vercel設定](https://vercel.com/docs/project-configuration/vercel-json)、[Gitデプロイ設定](https://vercel.com/docs/project-configuration/git-configuration)。
+参考: [ExpoのWeb公開](https://docs.expo.dev/guides/publishing-websites/)、[Vercel設定](https://vercel.com/docs/project-configuration/vercel-json)、[Gitのデプロイ設定](https://vercel.com/docs/project-configuration/git-configuration)。
 
 ## 構成と仕様
 

@@ -26,7 +26,7 @@
 
 ### Day 1.5 — 追加工程: Vercel Web Preview導入
 **実装**: Expo SDK 58とWeb static出力を維持し、VercelをFramework Other、Root Directory `.`、Install `npm ci`、Build `npm run build:web`、Output `dist`で構成。`.vercel/`を除外し、READMEにGit連携・検証手順を記載する。SPA用一括rewriteや不要な依存を追加しない。
-**受け入れ条件**: `npm ci`、`npm test`、Expo Doctor、Webビルド成功。distのHTML・アセットとVercel設定の構文を確認。Git連携のPR Previewでビルド、HTTPアクセス、アプリ名、JS/CSS読込、404・重大なブラウザエラーを検証する。iPhone Safariは利用者が目視確認。新規プロジェクトはアカウント・プラン・公開範囲の承認後に作成し、Production公開・有料変更は別途明示承認。mainの自動デプロイは無効化する。実際のPR番号とPreview URLは作成したPRで管理する。
+**受け入れ条件**: `npm ci`、`npm test`、Expo Doctor、Webビルド成功。distのHTML・アセットとVercel設定の構文を確認。まずPR #2を取り込んだmainからProductionを公開しHTTP 200を確認する（2026-11-17に利用者が外部公開を承認済み）。次にPR #3のPreviewでビルド、HTTPアクセス、アプリ名、JS/CSS読込、404・重大なブラウザエラーを検証。iPhone Safariは利用者が目視確認。Preview確認後にPR #3をマージしてmainのProductionが自動更新されることを確認する。mainの自動デプロイを無効にしない。有料プラン変更は別承認。実際のPR番号とデプロイURLはPRで管理する。
 
 ### Day 2 — PR #2: UIデザイントークンとタブ
 **実装**: 色/タイポ/余白のトークン、共通Button/Card、今週・買い物・設定の3タブ。
