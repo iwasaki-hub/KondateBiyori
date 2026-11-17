@@ -44,6 +44,41 @@ ESLintはExpoのReactプラグインとの互換性のため9.39.5に固定し�
 
 2026-11-17の `npm audit` では、Expoの開発ツール `@expo/fingerprint` が依存するminimatchのDoS問題（GHSA-g3hv-75wg-m249）に由来するmoderate 3件を検出しています。外部入力を扱うアプリ機能はまだありませんが、開発時も信頼できないプロジェクトを処理しないでください。SDK 58の互換性を維持するため、SDKをダウングレードする `npm audit fix --force` や依存のメジャー強制上書きは行っていません。Expo側の対応版を追跡します。
 
+## Vercel Webデプロイ（Day 1.5）
+
+Expo Routerの `expo.web.output: static` を維持し、`vercel.json` でWebビルドを定義しています。SPA用の一括rewriteは使いません。iOS向けコードと依存関係は変更していません。
+
+| 設定 | 値 |
+| --- | --- |
+| Vercelチーム | masa's projects（Hobby） |
+| Project | `kondate-biyori` |
+| Framework | Other（`framework: null`） |
+| Root Directory | リポジトリ直下 |
+| Install | `npm ci` |
+| Build | `npm run build:web` |
+| Output | `dist` |
+| Node.js | 24.x |
+| 環境変数 | Day 1.5時点では不要 |
+
+### GitHub連携と公開フロー
+
+- **Production**: `main` の内容を自動デプロイします。最初のProductionはPR #2を取り込んだ `main` (`e60a6649`) から作成済みです。公開URL: https://kondate-biyori-seven.vercel.app/ 。公開Web版は一般アクセス可能です。
+- **Preview**: PRのfeatureブランチごとにVercel Previewを生成し、ビルド・表示を確認します。Previewの認証保護はVercel側で有効にし、Productionには適用しません。
+- **Merge**: CI・Preview・必要なiPhone Safari確認が成功してからSquash Mergeします。マージによって `main` のProduction更新が走ります。
+- `main` の自動デプロイを禁止する `git.deploymentEnabled.main: false` は使用しません。VercelのIgnored Build Stepにも `main` スキップ設定を置きません。
+- `main` への直接Push、認証トークンのGitコミット、有料プラン変更、外部DBやAI課金APIへの無断接続は禁止です。
+- 本プロジェクトのHobby運用は開発・個人的な検証を対象とし、商用運用を始める前にプラン・利用規約を再評価します。
+
+### PRのPreview検証
+
+1. `npm ci`、`npm test`、`npx expo-doctor`、`npm run build:web` を実行し、静的HTMLと参照アセットを確認します。
+2. Vercelで対象PRブランチ・コミット・環境`Preview`を照合し、ビルドがREADYであることを確認します。
+3. 認証済みPreviewと公開ProductionのそれぞれでHTTP・アプリ名・JS/CSSアセット・404・重大エラーを確認します。保護されたPreviewの認証ページはアプリのエラーとは区別します。
+4. iPhone SafariでSafe Area、文字の折返し、横はみ出し、スクロール、大きい文字設定を目視確認し、PRに結果・URL・対象SHAを記載します。
+5. Previewが成功したPRのみmainにマージし、Production READY・公開URL HTTP 200とコミット一致を再確認します。ロールバックには対象マージコミットのrevertを優先します。
+
+参考: [ExpoのWeb公開](https://docs.expo.dev/guides/publishing-websites/)、[Vercel設定](https://vercel.com/docs/project-configuration/vercel-json)、[Gitのデプロイ設定](https://vercel.com/docs/project-configuration/git-configuration)。
+
 ## 構成と仕様
 
 - `app/_layout.tsx`: Routerと画面共通設定
