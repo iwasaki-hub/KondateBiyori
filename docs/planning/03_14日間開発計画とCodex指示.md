@@ -4,6 +4,7 @@
 - 想定: 1日1PR、各PRは単一責務。スケジュールは目安（審査/外部認証/開発時間により変動）。
 - リポジトリは新規独立 `iwasaki-hub/KondateBiyori` を推奨（**未作成**）。既存LittleDiaryには変更を加えない。
 - 基本: `feature/<issue>` → PR → CI pass → iPhone必要箇所の手動確認 → squash merge。
+- Day 1.5導入後のPRレビューでは、CIに加えてVercel Previewのビルド・表示・アセット読込・エラーを確認し、必要箇所はiPhone Safariでも目視する。
 - 初期14日で「非課金のテスト版MVP」を目標とする。正式課金・ストア公開は後工程。
 
 ## 安全な作業ルール
@@ -17,9 +18,15 @@
 
 ## 14日間 / 14PR
 
+以下の「PR #1〜#14」は当初の計画上の番号であり、GitHubの実際のPR番号とは一致しない。Day 1の実PRは #2。追加工程Day 1.5を挿入し、既存Day 1〜14の日程・仕様・計画番号は保持する。
+
 ### Day 1 — PR #1: 新規リポジトリとExpo起動
 **実装**: Expo SDK 58 + TypeScript + Expo Router、README、`.gitignore`、`.env.example`、初期画面、AGENTS.md。
 **受け入れ条件**: iPhone Expo Goまたは開発環境で起動、`tsc --noEmit`成功、ESLint成功、秘密情報0件。LittleDiaryに変更なし。
+
+### Day 1.5 — 追加工程: Vercel Web Preview導入
+**実装**: Expo SDK 58とWeb static出力を維持し、VercelをFramework Other、Root Directory `.`、Install `npm ci`、Build `npm run build:web`、Output `dist`で構成。`.vercel/`を除外し、READMEにGit連携・検証手順を記載する。SPA用一括rewriteや不要な依存を追加しない。
+**受け入れ条件**: `npm ci`、`npm test`、Expo Doctor、Webビルド成功。distのHTML・アセットとVercel設定の構文を確認。Git連携のPR Previewでビルド、HTTPアクセス、アプリ名、JS/CSS読込、404・重大なブラウザエラーを検証する。iPhone Safariは利用者が目視確認。新規プロジェクトはアカウント・プラン・公開範囲の承認後に作成し、Production公開・有料変更は別途明示承認。mainの自動デプロイは無効化する。実際のPR番号とPreview URLは作成したPRで管理する。
 
 ### Day 2 — PR #2: UIデザイントークンとタブ
 **実装**: 色/タイポ/余白のトークン、共通Button/Card、今週・買い物・設定の3タブ。

@@ -1,6 +1,7 @@
 # Logs
 # Expo / native generated projects
 .expo/
+.vercel/
 expo-env.d.ts
 web-build/
 ios/

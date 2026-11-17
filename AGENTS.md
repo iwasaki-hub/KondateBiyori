@@ -9,6 +9,8 @@
 - 未実装の機能を利用可能に見せない。データを扱う機能では空・読込中・失敗・再試行を設計する。
 - TypeScript strictを維持する。依存追加時はExpoとの互換性を確認し、バージョンとpackage-lock.jsonを管理する。
 - `npm ci`、`npm test`、`npx expo-doctor`、`npm run build:web`で必要な検証を行う。現状のtestは型チェックとlintであり、ユニットテストではない。ロジック追加時は意味のあるユニットテストを追加する。
+- Webを変更するPRは、distのHTML・参照アセットとVercel Previewのビルド、HTTP、アプリ名、JS/CSS読込、404・重大なブラウザエラーを確認し、URLと対象コミットをPRに記載する。確認できない項目は未確認とする。iPhone Safariの目視は利用者に依頼する。
+- Expo Webのstatic出力を維持し、一括SPA rewriteを追加しない。`.vercel/`と認証トークンをコミットしない。Vercel新規Git連携プロジェクトは対象アカウント・プラン・公開範囲を提示して承認後に作成する。Production公開・有料変更も明示承認が必要。mainの自動デプロイ無効設定を無断で解除しない。
 - `.env`、認証情報、秘密鍵、不要生成物をコミットしない。AI APIの秘密鍵とSupabase service_roleはサーバーだけで扱う。
 - Supabase、AI、課金は対応するDayと明示的な作業範囲に従う。共有・本番環境の破壊的操作は事前承認。対象環境を必ず確認する。
 - 最終差分・秘密情報・Git状態を確認し、必要なファイルのみステージングする。
