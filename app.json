@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "こんだて日和",
+    "slug": "kondate-biyori",
+    "version": "0.1.0",
+    "scheme": "kondatebiyori",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": ["ios", "web"],
+    "ios": { "supportsTablet": false },
+    "web": { "output": "static" },
+    "plugins": ["expo-router"]
+  }
+}

@@ -1,4 +1,18 @@
 # Logs
+# Expo / native generated projects
+.expo/
+expo-env.d.ts
+web-build/
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.env.*
+!.env.example
+
 logs
 *.log
 npm-debug.log*
