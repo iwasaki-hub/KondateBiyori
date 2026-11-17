@@ -81,6 +81,16 @@ Expo Routerの `expo.web.output: static` を維持し、`vercel.json` でWebビ�
 
 ## 構成と仕様
 
+### SNSリンクプレビュー（Day 2.5）
+
+サイト名・説明・公開URL・OGP画像URLは`src/config/siteMetadata.ts`に集約しています。各ページのSDK 58 `generateMetadata()`がビルド時にOGP/Twitter Cardを生成し、`app/+html.tsx`はExpoのhead/bodyノードと属性を保持して`lang="ja"`を指定します。`/`・`/shopping`・`/settings`は同じサイト紹介とProductionの正規URLを共有します。PreviewのURLを正規URLへ使用しません。
+
+画像は`public/og-kondate-biyori.png`（1200×630、不透明PNG）です。オリジナル図形とWindows同梱のYu Gothic UIによる文字描画のみを使用し、外部の写真・イラストは含みません。Windowsで`pwsh -File scripts/generate-og-image.ps1`を実行すると、テーマの色トークンを参照して再生成できます。フォントファイル自体は配布しません。再生成は通常のビルドには不要です。
+
+`npm run build:web`後に`npm run check:social`で3ルートのhead、タグ重複、絶対URL、日本語lang、JS/CSS/SVGと画像形式・サイズを検証します。CIでも実行します。検証スクリプトはNode.js 24 LTSを推奨します。
+
+Previewは認証保護されているためSNSクローラーで取得できない場合があります。保護設定は解除せず、認証付きHTTPでHTMLと画像を確認してください。マージ後に公開Productionで画像URLの200応答、各SNSのカード表示を確認します。X・LINE・Facebook・Discord側のキャッシュ、再取得タイミング、表示仕様によって結果が異なるため、未確認のSNS表示は成功扱いにしません。
+
 - `app/_layout.tsx`: Routerと画面共通設定
 - `app/(tabs)/`: 今週 `/`、買い物 `/shopping`、設定 `/settings`。静的出力でも各URLを直接開けます。
 - `src/theme/tokens.ts`: 色・文字・余白・角丸・アイコンサイズ
