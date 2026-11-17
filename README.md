@@ -1,8 +1,8 @@
 # こんだて日和
 
-家族向けAI週間献立アプリの開発リポジトリです。Day 1ではExpo SDK 58 / React Native / TypeScript / Expo Routerの基盤と、日本語の最小ホーム画面を実装しています。
+家族向けAI週間献立アプリの開発リポジトリです。Expo SDK 58 / React Native / TypeScript / Expo Routerを使い、Day 2では暖色デザイン・共通UI・今週/買い物/設定の3タブを実装しています。
 
-献立生成、保存、タブ、Supabase、AI API、課金は未実装です。現在、外部サービスのアカウントや環境変数は不要です。
+献立生成、保存、買い物操作、家族設定、Supabase、AI API、課金は未実装です。現在、アプリ起動に外部サービスのアカウントや環境変数は不要です。
 
 ## セットアップ
 
@@ -82,7 +82,12 @@ Expo Routerの `expo.web.output: static` を維持し、`vercel.json` でWebビ�
 ## 構成と仕様
 
 - `app/_layout.tsx`: Routerと画面共通設定
-- `app/index.tsx`: 最小ホーム画面
+- `app/(tabs)/`: 今週 `/`、買い物 `/shopping`、設定 `/settings`。静的出力でも各URLを直接開けます。
+- `src/theme/tokens.ts`: 色・文字・余白・角丸・アイコンサイズ
+- `src/components/`: AppButton（primary/secondary/disabled）、AppCard、AppIcon、AppScreen
+- `AppIcon`: `week` / `shopping` / `settings` / `meal` / `cooking` / `time` / `back` / `forward` / `info` / `success` の意味名を使用。サイズ20/24/32/48、toneとstateを指定し、Lucideへの依存をこの1ファイルに集約。必要なアイコンだけをimportします。ラベル省略時は装飾として読み上げ対象から除外します。
+- アイコン依存: `lucide-react-native@1.74.0`、Expo SDK 58互換の`react-native-svg@15.16.0`を固定。全アイコンのバンドルを避けるため`lucide-react-native/icons/*`から個別importします。ESLintの解決用にExpoと同じ`eslint-import-resolver-typescript@3.10.1`を開発依存へ明示しています。
+- `tests/icon-api.typecheck.ts`: 不正な意味名・色・サイズがTypeScriptで拒否されることを`npm test`で確認します（描画の実行テストではありません）。
 - `app.json`: アプリ名・iOS・Webの設定
 - `.env.example`: 環境変数不要の案内（秘密鍵は記載しない）
 - `docs/planning/01_PRD_仕様書.md`: 製品仕様
@@ -90,4 +95,4 @@ Expo Routerの `expo.web.output: static` を維持し、`vercel.json` でWebビ�
 - `docs/planning/03_14日間開発計画とCodex指示.md`: 日別開発計画
 - `AGENTS.md`: Codex開発ルール
 
-1タスク＝1ブランチ＝1PRで開発し、mainへの直接コミット・Push、自動マージは行いません。Day 2はデザイントークン・共通UI・3タブを予定しています。
+1タスク＝1ブランチ＝1PRで開発し、mainへの直接コミット・Push、自動マージは行いません。iPhoneでは3タブ移動、Safe Area、文字拡大、狭い画面での横はみ出し、アイコン表示、ボタンの押下/無効状態、VoiceOverの選択状態を確認してください。
