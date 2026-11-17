@@ -5,6 +5,11 @@ import { AppCard } from '../../src/components/AppCard';
 import { AppIcon } from '../../src/components/AppIcon';
 import { AppScreen } from '../../src/components/AppScreen';
 import { screenStyles as s } from '../../src/theme/screenStyles';
+import { getSiteMetadata } from '../../src/config/siteMetadata';
+
+export function generateMetadata() {
+  return getSiteMetadata();
+}
 
 export default function WeekScreen() {
   const router = useRouter();
