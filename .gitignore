@@ -2,6 +2,7 @@
 # Expo / native generated projects
 .expo/
 .vercel/
+.ci-build/
 expo-env.d.ts
 web-build/
 ios/

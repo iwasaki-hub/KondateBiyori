@@ -1,0 +1,12 @@
+{
+  "cli": {
+    "requireCommit": true
+  },
+  "build": {
+    "ios-simulator": {
+      "ios": {
+        "simulator": true
+      }
+    }
+  }
+}
