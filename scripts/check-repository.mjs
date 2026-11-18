@@ -3,12 +3,13 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
-const forbiddenPath = /(^|\/)(?:node_modules|dist|\.expo|\.vercel|\.ci-build)(?:\/|$)|(^|\/)credentials\.json$|\.(?:p8|p12|key|mobileprovision)$/i;
+const forbiddenPath = /(^|\/)(?:node_modules|dist|\.expo|\.vercel|\.ci-build)(?:\/|$)|(^|\/)credentials\.json$|\.(?:jks|p8|p12|key|mobileprovision)$/i;
 const secretPatterns = [
   /-----BEGIN (?:[A-Z ]+ )?PRIVATE KEY-----/,
   /\bgh[pousr]_[A-Za-z0-9]{20,}\b/,
   /\bgithub_pat_[A-Za-z0-9_]{30,}\b/,
   /\bsk-[A-Za-z0-9_-]{24,}\b/,
+  /\bEXPO_TOKEN["']?\s*[:=]\s*["']?[A-Za-z0-9_-]{20,}\b/,
 ];
 for (const file of files) {
   assert.ok(!forbiddenPath.test(file), `Forbidden generated/credential path: ${file}`);

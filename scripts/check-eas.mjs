@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 
 // Deliberately stricter than EAS's full schema: this phase is simulator-only,
-// unlinked, with no credentials, distribution, updates, or submit configuration.
+// linked to the approved project, with no credentials, updates, or submit configuration.
 export function validateEasPreparation(eas, app, pkg, tsconfig) {
   // Compare as a boolean so a rejected env/credential value is never echoed
   // by an assertion diff into a local or CI log.
@@ -12,23 +12,35 @@ export function validateEasPreparation(eas, app, pkg, tsconfig) {
     cli: { requireCommit: true },
     build: { 'ios-simulator': { ios: { simulator: true } } },
   }), 'Only the approved, clean-commit iOS Simulator profile is allowed; rejected values withheld');
-  assert.match(pkg.dependencies.expo, /^58\.0\.\d+$/, 'Keep SDK 58 with an exact patch version');
-  assert.equal(pkg.main, 'expo-router/entry');
-  assert.equal(pkg.scripts.start, 'expo start', 'Keep the Expo Go entry point');
-  assert.equal(pkg.dependencies['expo-dev-client'], undefined, 'No development client in this phase');
-  assert.equal(pkg.dependencies['expo-updates'], undefined, 'No EAS Update in this phase');
-  assert.equal(app.expo.slug, 'kondate-biyori');
-  assert.deepEqual(app.expo.platforms, ['ios', 'web']);
-  assert.equal(app.expo.web.output, 'static');
-  assert.equal(app.expo.owner, undefined, 'Linking requires a separate approved task');
-  assert.equal(app.expo.extra?.eas?.projectId, undefined, 'Do not reuse another project ID');
-  assert.equal(app.expo.ios.bundleIdentifier, undefined, 'Bundle identifier is not approved yet');
-  assert.equal(app.expo.updates, undefined, 'No remote updates configuration');
-  assert.equal(tsconfig.compilerOptions.strict, true);
+  assert.ok(/^58\.0\.\d+$/.test(pkg.dependencies.expo), 'Keep SDK 58 with an exact patch version');
+  assert.ok(pkg.main === 'expo-router/entry', 'Keep the Expo Router entry point');
+  assert.ok(pkg.scripts.start === 'expo start', 'Keep the Expo Go start command');
+  for (const dependencies of [pkg.dependencies, pkg.devDependencies, pkg.optionalDependencies, pkg.peerDependencies]) {
+    assert.ok(dependencies?.['expo-dev-client'] === undefined, 'No development client in this phase');
+    assert.ok(dependencies?.['expo-updates'] === undefined, 'No EAS Update in this phase');
+  }
+  assert.ok(app.expo.slug === 'kondate-biyori', 'Keep the approved Expo slug');
+  assert.ok(isDeepStrictEqual(app.expo.platforms, ['ios', 'web']), 'Keep iOS and web platforms');
+  assert.ok(app.expo.web.output === 'static', 'Keep static web output');
+  assert.ok(app.expo.owner === 'masa-practice', 'Use the approved Expo owner');
+  assert.ok(isDeepStrictEqual(app.expo.extra, {
+    eas: { projectId: '5a32cac4-2dfb-4ae0-84e2-64b789fcf365' },
+  }), 'Only the approved EAS project link is allowed in expo.extra; rejected values withheld');
+  assert.ok(app.expo.ios.bundleIdentifier === 'com.iwasakihub.kondatebiyori', 'Use the approved iOS bundle identifier');
+  assert.ok(app.expo.updates === undefined && app.expo.runtimeVersion === undefined
+    && app.expo.ios.runtimeVersion === undefined, 'No EAS Update configuration');
+  assert.ok(isDeepStrictEqual(app.expo.plugins, ['expo-router']), 'Keep the Expo Router plugin configuration');
+  assert.ok(tsconfig.compilerOptions.strict === true, 'Keep TypeScript strict mode');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const readJson = path => JSON.parse(readFileSync(path, 'utf8'));
+  const readJson = path => {
+    try {
+      return JSON.parse(readFileSync(path, 'utf8'));
+    } catch {
+      throw new Error(`Unable to read or parse ${path}; contents withheld`);
+    }
+  };
   validateEasPreparation(readJson('eas.json'), readJson('app.json'), readJson('package.json'), readJson('tsconfig.json'));
-  console.log('PASS EAS preparation: simulator-only, clean commit, unlinked, no credentials/submit/update; SDK 58, Expo Go and static web preserved (offline)');
+  console.log('PASS EAS policy: approved project, Simulator only, clean commit, SDK 58, Expo Go and static web (offline)');
 }

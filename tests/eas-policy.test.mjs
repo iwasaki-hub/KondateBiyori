@@ -16,7 +16,11 @@ const forbiddenChanges = [
   ['update channel', ([eas]) => { eas.build['ios-simulator'].channel = 'preview'; }],
   ['credential environment', ([eas]) => { eas.build['ios-simulator'].env = { TOKEN: 'fixture' }; }],
   ['dirty builds allowed', ([eas]) => { eas.cli.requireCommit = false; }],
-  ['unapproved project link', ([, app]) => { app.expo.extra = { eas: { projectId: 'another-project' } }; }],
+  ['unapproved project link', ([, app]) => { app.expo.extra.eas.projectId = '00000000-0000-4000-8000-000000000000'; }],
+  ['unapproved owner', ([, app]) => { app.expo.owner = 'another-owner'; }],
+  ['unapproved bundle identifier', ([, app]) => { app.expo.ios.bundleIdentifier = 'com.example.other'; }],
+  ['update configuration', ([, app]) => { app.expo.updates = { enabled: true }; }],
+  ['authentication token in app config', ([, app]) => { app.expo.extra.token = 'fixture'; }],
   ['development client', ([,, pkg]) => { pkg.dependencies['expo-dev-client'] = 'fixture'; }],
   ['SDK upgrade', ([,, pkg]) => { pkg.dependencies.expo = '59.0.0'; }],
   ['non-static web', ([, app]) => { app.expo.web.output = 'server'; }],
@@ -36,6 +40,12 @@ test('a rejected credential value is not included in validation errors', () => {
   assert.throws(() => validateEasPreparation(...candidate), error => {
     assert.ok(!error.message.includes(privateValue));
     assert.equal(error.actual, false);
+    return true;
+  });
+  candidate[0] = structuredClone(base[0]);
+  candidate[1].expo.owner = privateValue;
+  assert.throws(() => validateEasPreparation(...candidate), error => {
+    assert.ok(!error.stack.includes(privateValue));
     return true;
   });
 });
