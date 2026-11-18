@@ -4,6 +4,13 @@
 
 献立生成、保存、買い物操作、家族設定、Supabase、AI API、課金は未実装です。現在、アプリ起動に外部サービスのアカウントや環境変数は不要です。
 
+## 開発履歴・次回の再開
+
+- [WORKLOG.md](docs/development/WORKLOG.md): Day 1〜Day 2.8の実PR・実装・検証・残課題を時系列で記録。
+- [HANDOFF.md](docs/development/HANDOFF.md): 新しいチャット/Codexが最初に読む引き継ぎとDay 3の開始条件。
+
+実PRの番号は計画書のPR番号とは異なります。進捗はこれらの記録とGitHubの最新main・PRを照合してください。
+
 ## セットアップ
 
 Node.js 22.13以上のLTS（推奨: Node.js 24 LTS）、npm、Gitを用意してください。
