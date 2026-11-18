@@ -1,14 +1,17 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 
 // Deliberately stricter than EAS's full schema: this phase is simulator-only,
 // unlinked, with no credentials, distribution, updates, or submit configuration.
 export function validateEasPreparation(eas, app, pkg, tsconfig) {
-  assert.deepEqual(eas, {
+  // Compare as a boolean so a rejected env/credential value is never echoed
+  // by an assertion diff into a local or CI log.
+  assert.ok(isDeepStrictEqual(eas, {
     cli: { requireCommit: true },
     build: { 'ios-simulator': { ios: { simulator: true } } },
-  }, 'Only the approved, clean-commit iOS Simulator profile is allowed');
+  }), 'Only the approved, clean-commit iOS Simulator profile is allowed; rejected values withheld');
   assert.match(pkg.dependencies.expo, /^58\.0\.\d+$/, 'Keep SDK 58 with an exact patch version');
   assert.equal(pkg.main, 'expo-router/entry');
   assert.equal(pkg.scripts.start, 'expo start', 'Keep the Expo Go entry point');

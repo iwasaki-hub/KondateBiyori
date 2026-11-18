@@ -28,3 +28,14 @@ for (const [name, change] of forbiddenChanges) {
     assert.throws(() => validateEasPreparation(...candidate));
   });
 }
+
+test('a rejected credential value is not included in validation errors', () => {
+  const candidate = structuredClone(base);
+  const privateValue = ['do-not', 'echo', 'fixture-value'].join('-');
+  candidate[0].build['ios-simulator'].env = { TOKEN: privateValue };
+  assert.throws(() => validateEasPreparation(...candidate), error => {
+    assert.ok(!error.message.includes(privateValue));
+    assert.equal(error.actual, false);
+    return true;
+  });
+});
