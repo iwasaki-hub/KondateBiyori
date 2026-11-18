@@ -12,6 +12,7 @@ android/
 *.p12
 *.key
 *.mobileprovision
+credentials.json
 .env.*
 !.env.example
 

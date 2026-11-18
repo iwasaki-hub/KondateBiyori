@@ -11,7 +11,8 @@
 - 未実装の機能を利用可能に見せない。データを扱う機能では空・読込中・失敗・再試行を設計する。
 - TypeScript strictを維持する。依存追加時はExpoとの互換性を確認し、バージョンとpackage-lock.jsonを管理する。
 - `npm ci`、`npm test`、`npx expo-doctor`、`npm run build:web`で必要な検証を行う。testは型チェック・lint・EAS準備設定の安全境界テストを実行する。ロジック追加時は意味のあるユニットテストを追加する。
-- Day 2.7のEASは未紐付け・Simulator専用設定のみ。`check:eas`は認証不要のローカル検証、`export:ios`はJS変換でありネイティブビルドではない。EASプロジェクト作成・紐付け・Build/Submit/Update・Apple署名は別作業の明示承認後に行う。他プロジェクトのIDを流用しない。
+- Day 2.8は既存の `@masa-practice/kondate-biyori`（Project ID `5a32cac4-2dfb-4ae0-84e2-64b789fcf365`、Bundle Identifier `com.iwasakihub.kondatebiyori`）を紐付ける。`eas.json` はクリーンなコミットのiOS Simulatorビルド専用。CI・認証付きVercel Preview・無料枠の確認後に明示承認されたビルドを手動実行し、履歴と結果をPRに記録する。
+- GitHub Actionsはシークレットなしの検証、Vercelは静的Web配信、Expo Goは開発時の動作確認、EAS Buildはネイティブ成果物の生成を担当する。`check:eas` はローカル検証、`export:ios` はJS変換。WindowsではiOS Simulatorを直接起動できない。Apple Developer Program未加入のため、Apple署名・実機ビルドは加入と識別子の所有権確認後に別途承認を得る。Submit・Update・他プロジェクトのID流用は禁止。
 - Webを変更するPRは、distのHTML・参照アセットとVercel Previewのビルド、HTTP、アプリ名、JS/CSS読込、404・重大なブラウザエラーを確認し、URLと対象コミットをPRに記載する。確認できない項目は未確認とする。iPhone Safariの目視は利用者に依頼する。
 - Expo Webのstatic出力を維持し、一括SPA rewriteを追加しない。`.vercel/`と認証トークンをコミットしない。承認済みのVercelプロジェクトではfeature PRのPreview確認後、mainへのマージでProductionを自動更新する。Productionを公開、Previewを認証保護する。Vercelのプラン変更・手動Production再公開など運用変更は事前承認を得る。
 - `.env`、認証情報、秘密鍵、不要生成物をコミットしない。AI APIの秘密鍵とSupabase service_roleはサーバーだけで扱う。

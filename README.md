@@ -50,7 +50,7 @@ ESLintはExpoのReactプラグインとの互換性のため9.39.5に固定し�
 
 2026-11-18の再監査では42件（high 40、moderate 2）を検出しました。根本のアドバイザリは上記minimatchと、picomatchの繰り返しextglobによるReDoSで、依存先からExpo等へ影響が集計されています。npmが提示するExpo 52への強制変更はSDK 58要件と矛盾するため実行していません。Day 2.7ではExpo Doctorが求めるSDK 58の推奨パッチ（Expo 58.0.26 / Router 58.0.32）へ更新しましたが、監査警告42件は残っています。このPRのCI成功は脆弱性が解消したことを意味しません。
 
-## 安全な開発パイプライン（Day 2.7）
+## 安全な開発パイプライン（Day 2.8）
 
 ```text
 VS Code + Codex
@@ -66,8 +66,8 @@ featureブランチ → GitHub Pull Request
       +--> Vercel Preview（Git連携、認証保護を維持）
       |      Web表示 / 3ルート / OGP・画像・アセット確認
       |
-      +--> Expo / EAS（今回は既存状態の調査と設定確認のみ）
-             ネイティブビルド・署名・配信は未実行
+      +--> Expo / EAS（手動承認のiOS Simulatorビルド）
+             CI・認証付きPreviewの検証後に開始
       |
       v
 人間によるPRレビュー → 手動Squash Merge → main
@@ -83,26 +83,31 @@ VercelとEASは独立した経路です。GitHub Actionsの`checks`は`contents:
 | GitHub Actions | 型・lint・設定・静的Web・JS変換。実機のUIや署名は検証しない |
 | Vercel Preview | Webの3ルート・画像・OGP。iOSネイティブの検証ではない |
 | Expo Go | 対応SDKでのiPhone実行。独自ネイティブアプリのビルド成功とは別 |
-| EAS Build | ネイティブアプリのコンパイル。今回は未実行 |
+| EAS Build | iOS Simulator用のネイティブ成果物を生成 |
 | TestFlight | Appleで処理されたベータ版の配布。今回は未実施 |
 | App Store | 審査と一般公開。今回は未実施 |
 
-### EAS準備設定と現在の紐付け
+### EASプロジェクト連携（Day 2.8）
 
-`eas.json`は`cli.requireCommit: true`と`build.ios-simulator.ios.simulator: true`だけを定義しています。未コミット状態のビルド/Updateを防ぐEASの設定ですが、今回はどちらも起動しません。Simulator用は将来の設定であり、Windows上でiOS Simulatorを実行できるようにするものではありません。developmentClient、実機internal distribution、store/submit、Update channel、環境変数、署名情報はありません。`$schema`の外部取得にも依存しません。
+利用者が作成済みのExpoプロジェクトを `app.json` に紐付けます。
 
-`npm run check:eas`はJSON解析と今回の許可構成の厳密な照合を行い、認証・ネットワーク・EAS CLIなしで実行できます。SDK 58、strict、Expo Goの起動方法、static出力、未紐付け状態も確認します。store/submit/channel/env/別Project IDなどを拒否するテストを`npm test`で実行します。将来承認された紐付けやプロファイルを追加する際は、この制約とテストも同じPRで意図的に更新してください。
+| 項目 | 値 |
+| --- | --- |
+| Owner | `masa-practice` |
+| Slug | `kondate-biyori` |
+| Project ID | `5a32cac4-2dfb-4ae0-84e2-64b789fcf365` |
+| iOS Bundle Identifier | `com.iwasakihub.kondatebiyori` |
 
-2026-11-18の読み取り調査:
+`eas.json` は `cli.requireCommit: true` と `build.ios-simulator.ios.simulator: true` のみを定義します。`npm run check:eas` は識別子とSimulator専用設定を認証なしで検証し、`npm test` は別プロジェクトや配布・Update・認証情報を含む設定の拒否を確認します。`npm run check:repository` は生成物と代表的な秘密情報パターンを検査します。アップロード前には `.gitignore` と、存在する場合は優先される `.easignore` を確認します。
 
-- EAS CLI 27.10.0は`masa-practice`でログイン済み。公式APIで同アカウントを参照でき、現在のプロジェクト一覧は`appCount: 0`でした。
-- `@masa-practice/kondate-biyori`の照会は存在しないとの応答でした。ほかのアカウントに属するプロジェクトの有無はこの結果から断定しません。
-- ローカルslugは`kondate-biyori`。owner、`extra.eas.projectId`、iOS Bundle Identifierは未設定です。新規作成・紐付けは行っていません。
-- 対応プロジェクトがないためKondateBiyoriのEASビルド履歴は取得対象なしで未確認です。「ビルド履歴0件」とは区別します。
-- 過去に確認されたLittleDiaryのIDは流用しません。今回そのプロジェクトへの変更は行っていません。
-- 提示した設定は、公式EAS CLI 27.10.0の`@expo/eas-json` validatorでもオフラインで検証しました。通常のCIは上記ローカル検証だけを使います。
+初回ビルド前のExpo照会ではビルド履歴は0件でした。対象コミット、CI、Preview、EAS Build IDと最終結果はDay 2.8のPRに記録します。PR HEADと手元のクリーンなコミットが一致し、GitHub Actions、認証付きVercel Preview、Expoプロジェクト、アップロード除外、追加課金なしの無料枠を確認した後、承認済みの1回を実行します。
 
-`check:repository`はGit管理対象と非除外の追加ファイルのパス・基本秘密情報パターン・差分空白を検査します。包括的なsecret scannerではないため、レビューで最終差分を確認してください。EASのアップロード準備はまだ行わず、将来初回ビルド前に`.gitignore`（`.easignore`を作る場合はそちらが優先）の除外とアップロード対象も再確認します。
+```powershell
+npx eas-cli@27.10.0 build --platform ios --profile ios-simulator --non-interactive
+```
+
+Apple Developer Program未加入です。成果物の起動にはmacOSとXcodeのiOS Simulatorが必要です。WindowsではSimulatorを直接起動できません。`npm start` で使うExpo Go、`npm run export:ios` が生成するJavaScript/Hermesバンドル、EASのSimulator用ネイティブ成果物は別々に検証します。
+
 
 ### main保護の調査結果と提案（今回は未適用）
 
@@ -122,16 +127,16 @@ VercelとEASは独立した経路です。GitHub Actionsの`checks`は`contents:
 以下は将来の独立PRと利用者承認で実施し、今回のCIからは起動しません。
 
 1. Apple Developer Programへ加入する。
-2. iOS Bundle Identifierを確定する。
-3. 正しいExpoアカウント・プロジェクトを確定して紐付ける。
+2. Apple Developerアカウント側でBundle Identifierの利用可否と所有権を確認する。
+3. 既存のExpoプロジェクトへの紐付けを確認する。
 4. SDK互換の`expo-dev-client`を追加する。
 5. 実機用Development Build設定を追加する。
 6. アカウント所有者がApple署名とデバイス登録を行う。
-7. 対象・プロファイル・アップロード除外を確認し、初回EAS Buildを手動実行する。
+7. 対象・プロファイル・アップロード除外を確認し、初回実機向けEAS Buildを手動実行する。
 8. iPhone実機で起動・遷移・データ動作を確認する。
 9. TestFlightとApp Store公開のパイプラインを後日の別作業で構築する。
 
-Day 2.7のロールバックは未マージならPRを閉じ、マージ済みならこの変更をrevertするPRを作成します。元の4チェックを維持したまま追加検証・EAS設定・ドキュメントを戻せます。mainへrevertをマージするとVercel Productionが自動更新されることに注意してください。今回変更する外部Expo資源はありません。
+Day 2.8のロールバックは、未マージならPRを閉じ、マージ済みなら設定・検証・文書を戻すrevert PRを作成します。mainへのrevert取り込みに伴いVercel Productionが自動更新されます。Expoプロジェクトとビルド履歴は保持します。
 
 ## Vercel Webデプロイ（Day 1.5）
 
