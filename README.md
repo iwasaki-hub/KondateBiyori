@@ -34,15 +34,104 @@ npm run lint
 npm test
 npx expo-doctor
 npm run build:web
+npm run check:social
+npm run check:eas
+npm run check:repository
+npm run export:ios
 ```
 
-`npm test` は型チェックとESLintをまとめて実行します。Day 1には業務ロジックがないためユニットテストはまだありません。Web書き出しは `dist/` に生成され、Git管理対象外です。実機ではSafe Area、日本語表示、大きい文字設定、スクロール、縦画面での表示を確認してください。
+`npm test` は型チェック・ESLint・EAS準備設定の安全境界テストを実行します。アプリ業務ロジックのテストはまだありません。Web書き出しは `dist/`、iOSのJS/Hermesバンドルは `.ci-build/ios/` に生成され、いずれもGit管理対象外です。`export:ios`はローカルでJSを変換するだけで、ネイティブアプリのビルド・署名・クラウドアップロードは行いません。実機ではSafe Area、日本語表示、大きい文字設定、スクロールを別途確認してください。
 
 ### 既知の依存監査結果
 
 ESLintはExpoのReactプラグインとの互換性のため9.39.5に固定しています。ESLint 10では `react/display-name` の実行時エラーが発生するため、プラグイン対応後に更新してください（9系のサポート終了警告あり）。
 
 2026-11-17の `npm audit` では、Expoの開発ツール `@expo/fingerprint` が依存するminimatchのDoS問題（GHSA-g3hv-75wg-m249）に由来するmoderate 3件を検出しています。外部入力を扱うアプリ機能はまだありませんが、開発時も信頼できないプロジェクトを処理しないでください。SDK 58の互換性を維持するため、SDKをダウングレードする `npm audit fix --force` や依存のメジャー強制上書きは行っていません。Expo側の対応版を追跡します。
+
+2026-11-18の再監査では42件（high 40、moderate 2）を検出しました。根本のアドバイザリは上記minimatchと、picomatchの繰り返しextglobによるReDoSで、依存先からExpo等へ影響が集計されています。npmが提示するExpo 52への強制変更はSDK 58要件と矛盾するため実行していません。Day 2.7ではExpo Doctorが求めるSDK 58の推奨パッチ（Expo 58.0.26 / Router 58.0.32）へ更新しましたが、監査警告42件は残っています。このPRのCI成功は脆弱性が解消したことを意味しません。
+
+## 安全な開発パイプライン（Day 2.7）
+
+```text
+VS Code + Codex
+      |
+      v
+featureブランチ → GitHub Pull Request
+      |
+      +--> GitHub Actions（シークレット不要）
+      |      型チェック / ESLint / 安全境界テスト / Expo Doctor
+      |      EAS設定検証 / Git差分・基本秘密情報検査
+      |      Webビルド / OGP検証 / iOS JSバンドル検証
+      |
+      +--> Vercel Preview（Git連携、認証保護を維持）
+      |      Web表示 / 3ルート / OGP・画像・アセット確認
+      |
+      +--> Expo / EAS（今回は既存状態の調査と設定確認のみ）
+             ネイティブビルド・署名・配信は未実行
+      |
+      v
+人間によるPRレビュー → 手動Squash Merge → main
+      |
+      v
+Vercel Production自動更新
+```
+
+VercelとEASは独立した経路です。GitHub Actionsの`checks`は`contents: read`のみで実行し、checkoutの認証情報を残しません。`pull_request_target`、EASのビルド・Update・submit、ProductionへのCLIデプロイは含みません。Expo Doctorは確認済みの1.21.8に固定しています。
+
+| 経路 | 確認できること / できないこと |
+| --- | --- |
+| GitHub Actions | 型・lint・設定・静的Web・JS変換。実機のUIや署名は検証しない |
+| Vercel Preview | Webの3ルート・画像・OGP。iOSネイティブの検証ではない |
+| Expo Go | 対応SDKでのiPhone実行。独自ネイティブアプリのビルド成功とは別 |
+| EAS Build | ネイティブアプリのコンパイル。今回は未実行 |
+| TestFlight | Appleで処理されたベータ版の配布。今回は未実施 |
+| App Store | 審査と一般公開。今回は未実施 |
+
+### EAS準備設定と現在の紐付け
+
+`eas.json`は`cli.requireCommit: true`と`build.ios-simulator.ios.simulator: true`だけを定義しています。未コミット状態のビルド/Updateを防ぐEASの設定ですが、今回はどちらも起動しません。Simulator用は将来の設定であり、Windows上でiOS Simulatorを実行できるようにするものではありません。developmentClient、実機internal distribution、store/submit、Update channel、環境変数、署名情報はありません。`$schema`の外部取得にも依存しません。
+
+`npm run check:eas`はJSON解析と今回の許可構成の厳密な照合を行い、認証・ネットワーク・EAS CLIなしで実行できます。SDK 58、strict、Expo Goの起動方法、static出力、未紐付け状態も確認します。store/submit/channel/env/別Project IDなどを拒否するテストを`npm test`で実行します。将来承認された紐付けやプロファイルを追加する際は、この制約とテストも同じPRで意図的に更新してください。
+
+2026-11-18の読み取り調査:
+
+- EAS CLI 27.10.0は`masa-practice`でログイン済み。公式APIで同アカウントを参照でき、現在のプロジェクト一覧は`appCount: 0`でした。
+- `@masa-practice/kondate-biyori`の照会は存在しないとの応答でした。ほかのアカウントに属するプロジェクトの有無はこの結果から断定しません。
+- ローカルslugは`kondate-biyori`。owner、`extra.eas.projectId`、iOS Bundle Identifierは未設定です。新規作成・紐付けは行っていません。
+- 対応プロジェクトがないためKondateBiyoriのEASビルド履歴は取得対象なしで未確認です。「ビルド履歴0件」とは区別します。
+- 過去に確認されたLittleDiaryのIDは流用しません。今回そのプロジェクトへの変更は行っていません。
+- 提示した設定は、公式EAS CLI 27.10.0の`@expo/eas-json` validatorでもオフラインで検証しました。通常のCIは上記ローカル検証だけを使います。
+
+`check:repository`はGit管理対象と非除外の追加ファイルのパス・基本秘密情報パターン・差分空白を検査します。包括的なsecret scannerではないため、レビューで最終差分を確認してください。EASのアップロード準備はまだ行わず、将来初回ビルド前に`.gitignore`（`.easignore`を作る場合はそちらが優先）の除外とアップロード対象も再確認します。
+
+### main保護の調査結果と提案（今回は未適用）
+
+2026-11-18に管理権限のあるGitHub CLIで読み取り確認しました。公開リポジトリで`main.protected: false`、従来の保護APIは404 `Branch not protected`、Rulesets一覧とmainに適用されるルール一覧はいずれも空でした。今回は403ではなく確認できています。PR必須・チェック必須・force push/削除禁止・承認レビューの強制は現在確認できず、管理者/自動化の例外ルールもありません。チームの運用ルールとGitHub上の強制設定は区別してください。
+
+別作業で承認後に、mainを対象とする保護ルールまたはActive Rulesetへ次を設定することを推奨します。
+
+- PR経由の変更と最新mainに対する必須ステータスチェックを要求する。既存ジョブ名`checks`（発行元GitHub Actions、成功履歴あり）を必須化できます。
+- force pushとブランチ削除を禁止し、管理者にも適用する。無制限のbypassを管理者や自動化アカウントへ与えない。
+- 会話の解決を必須にし、必要なレビュー人数を承認者の体制に合わせて決める。独立したレビュー担当がいる場合は1承認以上を推奨。単独開発では自分のPRを承認できないため、機械的に1承認を設定して運用を止めない。
+- 設定後は意図した例外と`checks`の発行元を再確認する。今回ブランチ保護の設定APIは呼び出していません。
+
+参考: [EAS設定](https://docs.expo.dev/eas/json/)、[Simulator設定](https://docs.expo.dev/build-reference/simulators/)、[GitHubブランチ保護](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)。
+
+### Apple Developer Program加入後の別作業
+
+以下は将来の独立PRと利用者承認で実施し、今回のCIからは起動しません。
+
+1. Apple Developer Programへ加入する。
+2. iOS Bundle Identifierを確定する。
+3. 正しいExpoアカウント・プロジェクトを確定して紐付ける。
+4. SDK互換の`expo-dev-client`を追加する。
+5. 実機用Development Build設定を追加する。
+6. アカウント所有者がApple署名とデバイス登録を行う。
+7. 対象・プロファイル・アップロード除外を確認し、初回EAS Buildを手動実行する。
+8. iPhone実機で起動・遷移・データ動作を確認する。
+9. TestFlightとApp Store公開のパイプラインを後日の別作業で構築する。
+
+Day 2.7のロールバックは未マージならPRを閉じ、マージ済みならこの変更をrevertするPRを作成します。元の4チェックを維持したまま追加検証・EAS設定・ドキュメントを戻せます。mainへrevertをマージするとVercel Productionが自動更新されることに注意してください。今回変更する外部Expo資源はありません。
 
 ## Vercel Webデプロイ（Day 1.5）
 
