@@ -1,0 +1,15 @@
+import type { Recipe } from './recipe-schema';
+
+/** 本プロジェクト用に新規執筆したサンプル10件。写真・外部レシピ文面は転載していない。 */
+export const recipes = [
+  { id: 'tomato-chicken', name: '鶏肉のトマト煮', servings: 2, cookingMinutes: 25, source: 'original', ingredients: [{name:'鶏もも肉',quantity:300,unit:'g'},{name:'トマト',quantity:2,unit:'個'},{name:'玉ねぎ',quantity:1,unit:'個'}], steps:['鶏肉と野菜を食べやすい大きさに切る。','鍋で鶏肉を炒め、野菜を加える。','ふたをして火が通るまで煮る。'] },
+  { id: 'ginger-pork', name: '豚肉のしょうが焼き', servings: 2, cookingMinutes: 20, source: 'original', ingredients: [{name:'豚薄切り肉',quantity:250,unit:'g'},{name:'しょうが',quantity:15,unit:'g'},{name:'玉ねぎ',quantity:1,unit:'個'}], steps:['しょうがをすりおろし、玉ねぎを薄切りにする。','フライパンで豚肉と玉ねぎを炒める。','しょうがと好みの調味料を加え、汁気を飛ばす。'] },
+  { id: 'salmon-foil', name: '鮭ときのこの包み焼き', servings: 2, cookingMinutes: 25, source: 'original', ingredients: [{name:'生鮭',quantity:2,unit:'枚'},{name:'しめじ',quantity:100,unit:'g'},{name:'にんじん',quantity:80,unit:'g'}], steps:['鮭と切った野菜をアルミホイルにのせる。','ホイルを閉じ、フライパンに並べる。','少量の水を加えてふたをし、中心まで加熱する。'] },
+  { id: 'tofu-soboro', name: '豆腐のそぼろ炒め', servings: 2, cookingMinutes: 20, source: 'original', ingredients: [{name:'木綿豆腐',quantity:300,unit:'g'},{name:'鶏ひき肉',quantity:150,unit:'g'},{name:'小松菜',quantity:1,unit:'束'}], steps:['豆腐の水気を切り、小松菜を刻む。','鶏ひき肉を炒めて豆腐を崩し入れる。','小松菜を加え、火が通るまで炒める。'] },
+  { id: 'cabbage-pasta', name: 'キャベツとツナのパスタ', servings: 2, cookingMinutes: 20, source: 'original', ingredients: [{name:'スパゲッティ',quantity:200,unit:'g'},{name:'キャベツ',quantity:200,unit:'g'},{name:'ツナ',quantity:140,unit:'g'}], steps:['パスタを表示どおりゆでる。','ざく切りキャベツを炒め、ツナを加える。','水気を切ったパスタを合わせる。'] },
+  { id: 'vegetable-curry', name: '野菜たっぷりカレー', servings: 2, cookingMinutes: 35, source: 'original', ingredients: [{name:'じゃがいも',quantity:2,unit:'個'},{name:'にんじん',quantity:1,unit:'本'},{name:'玉ねぎ',quantity:1,unit:'個'},{name:'カレールウ',quantity:40,unit:'g'}], steps:['野菜を一口大に切る。','鍋で野菜を炒め、水を加えて柔らかく煮る。','火を止めてルウを溶かし、再加熱する。'] },
+  { id: 'egg-rice', name: '卵と野菜のチャーハン', servings: 2, cookingMinutes: 15, source: 'original', ingredients: [{name:'ご飯',quantity:400,unit:'g'},{name:'卵',quantity:2,unit:'個'},{name:'長ねぎ',quantity:1,unit:'本'}], steps:['長ねぎを刻み、卵を溶く。','フライパンで卵を炒め、ご飯とねぎを加える。','ほぐしながら炒めて味を調える。'] },
+  { id: 'miso-mackerel', name: 'さばのみそ煮', servings: 2, cookingMinutes: 25, source: 'original', ingredients: [{name:'さば切り身',quantity:2,unit:'枚'},{name:'しょうが',quantity:15,unit:'g'},{name:'みそ',quantity:30,unit:'g'},{name:'水',quantity:150,unit:'mL'}], steps:['さばの水気を拭き、しょうがを薄切りにする。','鍋で水としょうがを温め、さばを入れる。','みそを溶いて加え、落としぶたで煮る。'] },
+  { id: 'chicken-potato', name: '鶏じゃが', servings: 2, cookingMinutes: 30, source: 'original', ingredients: [{name:'鶏もも肉',quantity:250,unit:'g'},{name:'じゃがいも',quantity:3,unit:'個'},{name:'にんじん',quantity:1,unit:'本'},{name:'水',quantity:200,unit:'mL'}], steps:['具材を食べやすく切る。','鍋で鶏肉を炒め、野菜と水を入れる。','好みの調味料を加え、野菜が柔らかくなるまで煮る。'] },
+  { id: 'bean-soup', name: '豆と野菜のスープ', servings: 2, cookingMinutes: 25, source: 'original', ingredients: [{name:'ゆで大豆',quantity:150,unit:'g'},{name:'玉ねぎ',quantity:1,unit:'個'},{name:'にんじん',quantity:1,unit:'本'},{name:'水',quantity:500,unit:'mL'}], steps:['玉ねぎとにんじんを小さく切る。','鍋に水と野菜を入れて煮る。','大豆を加えて温め、味を調える。'] },
+] as const satisfies readonly Recipe[];
