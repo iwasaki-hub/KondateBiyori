@@ -18,8 +18,8 @@ export function isRecipe(value: unknown): value is Recipe {
   if (value === null || typeof value !== 'object') return false;
   const recipe = value as Record<string, unknown>;
   return hasText(recipe.id) && hasText(recipe.name) &&
-    Number.isInteger(recipe.servings) && positive(recipe.servings) &&
-    Number.isInteger(recipe.cookingMinutes) && positive(recipe.cookingMinutes) &&
+    positive(recipe.servings) && Number.isInteger(recipe.servings) &&
+    positive(recipe.cookingMinutes) && Number.isInteger(recipe.cookingMinutes) &&
     recipe.source === 'original' &&
     Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 &&
     recipe.ingredients.every(isIngredient) &&
@@ -47,7 +47,7 @@ function isValidLocalDate(date: unknown): date is string {
 export function validateMealPlan(value: unknown, recipes: readonly Recipe[]): MealPlan {
   if (value === null || typeof value !== 'object') throw new Error('Invalid meal plan');
   const plan = value as Record<string, unknown>;
-  if (!isValidLocalDate(plan.date) || !Number.isInteger(plan.servings) || !positive(plan.servings)) {
+  if (!isValidLocalDate(plan.date) || !positive(plan.servings) || !Number.isInteger(plan.servings)) {
     throw new Error('Invalid meal plan date or servings');
   }
   if (!hasText(plan.recipe_id) || !recipes.some(recipe => recipe.id === plan.recipe_id)) {
