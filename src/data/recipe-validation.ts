@@ -1,5 +1,5 @@
-import type { Ingredient, MealPlan, Recipe } from './recipe-schema';
-import { INGREDIENT_UNITS } from './recipe-schema';
+import type { Ingredient, MealPlan, Recipe } from './recipe-schema.ts';
+import { INGREDIENT_UNITS } from './recipe-schema.ts';
 
 const validUnits: ReadonlySet<string> = new Set(INGREDIENT_UNITS);
 const hasText = (value: unknown): value is string =>
