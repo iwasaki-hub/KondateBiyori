@@ -58,3 +58,8 @@
 
 - Day 3: PR [#10](https://github.com/iwasaki-hub/KondateBiyori/pull/10) をSquashマージ。レシピ10件・型・ID/単位検証。マージSHA `856ce2dde8979a30b1cadb4af739cea061d2bb27`。マージ前CIとVercelステータスは成功。
 - Day 4: 家族プロフィール（大人/子ども、時間、苦手/除外食材）の検証と端末内保存を専用ブランチへ追加。保存はiOS/Android SQLite KV、Web localStorage（ブラウザごと）。CI/Preview・実機の結果はPRで追記する。Day 5は未着手。
+
+## Day 5（2026-11-22）
+- Day 4 PR [#11](https://github.com/iwasaki-hub/KondateBiyori/pull/11) はSquashマージ済み（`a111ff42ece2011cfeba0846fe5f7bb2ecf912b5`）。
+- Day 5: 月〜日7日表示、前週/次週、週単位のローカル永続化、AIなしのサンプル献立、純粋関数テストを `feature/day05-weekly-meal-plan` へ追加。
+- CI / Vercel Preview / 実機テストの結果はPR本文に記録する。Day 6には未着手。
