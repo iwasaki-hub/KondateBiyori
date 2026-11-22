@@ -74,3 +74,8 @@
 - Day 6のPR [#13](https://github.com/iwasaki-hub/KondateBiyori/pull/13) をSquashマージ済み（`c7811d3103c75d7277aaded4598dccef82eca485`）。
 - Day 7: 週間献立のレシピ詳細から選択日だけ別候補に差し替えるUI、確認・キャンセル、保存失敗時の元プラン保護と純粋関数テストを `feature/day07-replace-one-meal` に追加。
 - 既存のレシピ台帳10件と週別ローカル保存を再利用。サンプルからの候補選択のみ、AIなし。CI、Preview、iPhone実機の結果は実PRに記録。
+
+## Day 7.5（2026-11-22）
+- Day 7 PR #14 は main `69fd4d3fd0a7d1fd6ac0523218b6f6327e2f3afa` にSquashマージ済み。
+- Supabase `iwasaki-hub's Org` に東京リージョンの専用プロジェクト作成を依頼。作成APIが費用確認IDを要求し、`get_cost` は月額$0を報告。金額への明示同意前なので、`confirm_cost`および`create_project`再実行は未実施。
+- `feature/day075-supabase-foundation` に公開設定検証、接続状態確認ヘルパー、環境変数サンプル、ドキュメント、単体テストを追加。Auth・同期・DB更新は未実装でローカル保存を維持。
