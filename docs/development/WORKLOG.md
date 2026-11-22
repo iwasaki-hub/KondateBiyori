@@ -84,3 +84,12 @@
 - 月額$0の明示同意を得て、Supabase新規専用プロジェクト `KondateBiyori` (Tokyo `ap-northeast-1`, ref `nrcilifwdkmojguezbln`) 作成。ACTIVE_HEALTHYを確認。
 - Vercel `kondate-biyori` プロジェクトの環境変数作成は403で拒否された。既存の環境設定は変更できていない。
 - PR #15へ設定タブの任意のSupabase接続診断と専用URLの環境変数サンプルを追加。SDK/クラウド保存/Auth/RLSは未実装。
+
+## Day 7.5 完了と2026-11-22引き継ぎ資料更新
+
+- Day 7.5 PR [#15](https://github.com/iwasaki-hub/KondateBiyori/pull/15) は**Squashマージ済み**。マージコミット `793b4c7ac505dfbacce158692056887dd8087968`（2026-11-22確認時点のmain）。
+- PR #15最終HEAD `376be3628df69ab420b8439f70489deedebd8f6f`、GitHub Actions [Run #35](https://github.com/iwasaki-hub/KondateBiyori/actions/runs/44991415663)は全ジョブ成功。Vercel Productionデプロイ `5i9EjNDgf81RPMz14F9MCNLxDWWZ` はREADY、mainコミット一致・GitHub Vercel status成功。
+- Supabase専用プロジェクト`nrcilifwdkmojguezbln`（東京）は作成済み・ACTIVE_HEALTHY。Postgres読み取りクエリ成功。
+- Vercelの公開環境変数はユーザーが「設定した」と報告。Vercel管理APIの一覧取得は403で読み取れず、実際のアプリからの疎通は未確認。
+- ユーザーの「同期完了」の表現は接続診断を指す可能性があるが、現行アプリにクラウド同期機能は存在しない。事実としてクラウド同期完了と記録しない。
+- Day 7.5-B（Auth/セッション維持）→ DB/RLS → クラウド同期 → Day 8を推奨。次回入口は[HANDOFF.md](HANDOFF.md)。本更新は引き継ぎ文書のみ、実装・環境変更はなし。
