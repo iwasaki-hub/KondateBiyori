@@ -9,7 +9,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "npm run typecheck && npm run lint && node --test tests/eas-policy.test.mjs && node --experimental-strip-types --test tests/recipe-catalog.test.mjs && node --experimental-strip-types --test tests/profile.test.mjs && node --experimental-strip-types --test tests/week-plan.test.mjs && node --experimental-strip-types --test tests/servings.test.mjs",
+    "test": "npm run typecheck && npm run lint && node --test tests/eas-policy.test.mjs && node --experimental-strip-types --test tests/recipe-catalog.test.mjs && node --experimental-strip-types --test tests/profile.test.mjs && node --experimental-strip-types --test tests/week-plan.test.mjs && node --experimental-strip-types --test tests/servings.test.mjs && node --experimental-strip-types --test tests/replace-meal.test.mjs",
     "build:web": "expo export --platform web",
     "check:social": "node scripts/check-social-preview.mjs",
     "check:eas": "node scripts/check-eas.mjs",
