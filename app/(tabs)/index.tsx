@@ -6,6 +6,7 @@ import { AppCard } from '../../src/components/AppCard';
 import { AppIcon } from '../../src/components/AppIcon';
 import { AppScreen } from '../../src/components/AppScreen';
 import { RecipeDetail } from '../../src/components/RecipeDetail';
+import { MealReplacement } from '../../src/components/MealReplacement';
 import { getSiteMetadata } from '../../src/config/siteMetadata';
 import type { MealPlan } from '../../src/data/recipe-schema';
 import { recipes } from '../../src/data/recipes';
@@ -15,6 +16,7 @@ import { screenStyles as s } from '../../src/theme/screenStyles';
 import { colors, radius, spacing, typography } from '../../src/theme/tokens';
 import { makeSampleWeek, parseLocalDate, shiftWeek, startOfWeek, weekDates } from '../../src/week/week-plan';
 import { loadWeek, saveWeek } from '../../src/week/week-storage';
+import { replaceMeal } from '../../src/week/replace-meal';
 
 export function generateMetadata() { return getSiteMetadata(); }
 
@@ -35,6 +37,8 @@ export default function WeekScreen() {
   const [retry, setRetry] = useState(0);
   const [saving, setSaving] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [replacementDate, setReplacementDate] = useState<string | null>(null);
+  const [replacementError, setReplacementError] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -52,6 +56,8 @@ export default function WeekScreen() {
 
   function changeWeek(offset: number) {
     setSelectedDate(null);
+    setReplacementDate(null);
+    setReplacementError('');
     setStatus('loading');
     setPlan(null);
     setError('');
@@ -80,6 +86,7 @@ export default function WeekScreen() {
       const next = makeSampleWeek(week, candidates, profile.adults + profile.children);
       await saveWeek(week, next);
       setSelectedDate(null);
+      setReplacementDate(null);
       setPlan(next);
       setNotice('サンプル献立を端末に保存しました。');
     } catch (e) {
@@ -91,9 +98,35 @@ export default function WeekScreen() {
     }
   }
 
+  async function confirmReplacement(recipeId: string) {
+    if (!plan || !replacementDate || saving) return;
+    setSaving(true);
+    setReplacementError('');
+    try {
+      const next = replaceMeal(plan, week, replacementDate, recipeId, recipes);
+      // Write must succeed before changing displayed data. Cancel never writes.
+      await saveWeek(week, next);
+      setPlan(next);
+      setReplacementDate(null);
+      setNotice('選択した1日分の献立を変更しました。');
+    } catch {
+      setReplacementError('変更を保存できませんでした。元の献立はそのままです。再試行してください。');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function openReplacement(date: string) {
+    setSelectedDate(null);
+    setReplacementError('');
+    setNotice('');
+    setReplacementDate(date);
+  }
+
   const dates = weekDates(week);
   const selectedItem = plan?.find(item => item.date === selectedDate);
   const selectedRecipe = selectedItem ? recipes.find(item => item.id === selectedItem.recipe_id) : undefined;
+  const replacementItem = plan?.find(item => item.date === replacementDate);
   return (
     <AppScreen>
       <View style={s.header}>
@@ -101,8 +134,22 @@ export default function WeekScreen() {
         <Text accessibilityRole="header" style={s.title}>こんだて日和</Text>
         <Text style={s.body}>一週間の夕食を、まとめて眺められます。</Text>
       </View>
-      {selectedItem && selectedRecipe ? (
-        <RecipeDetail key={selectedDate} recipe={selectedRecipe} initialServings={selectedItem.servings} onClose={() => setSelectedDate(null)} />
+      {replacementItem ? (
+        <MealReplacement
+          key={replacementDate}
+          dateLabel={`${fmt(replacementItem.date)}`}
+          currentRecipeId={replacementItem.recipe_id}
+          catalog={recipes}
+          saving={saving}
+          error={replacementError}
+          onCancel={() => { setReplacementDate(null); setReplacementError(''); }}
+          onConfirm={confirmReplacement}
+        />
+      ) : selectedItem && selectedRecipe ? (
+        <View style={styles.section}>
+          <RecipeDetail key={selectedDate} recipe={selectedRecipe} initialServings={selectedItem.servings} onClose={() => setSelectedDate(null)} />
+          <AppButton label="この日の献立を変更する" onPress={() => openReplacement(selectedItem.date)} />
+        </View>
       ) : <AppCard>
         <View style={s.row}><AppIcon name="week" /><Text accessibilityRole="header" style={s.heading}>週間献立</Text></View>
         <Text style={styles.period}>{fmt(dates[0])} 〜 {fmt(dates[6])}</Text>
@@ -159,8 +206,8 @@ export default function WeekScreen() {
           </View>
         )}
       </AppCard>}
-      {!selectedItem && <AppButton label="買い物リストを見る" icon="shopping" variant="secondary" onPress={() => router.push('/shopping')} />}
-      <View style={s.notice}><AppIcon name="info" /><Text style={s.small}>献立の差し替えと買い物リスト集計は今後対応します。</Text></View>
+      {!selectedItem && !replacementItem && <AppButton label="買い物リストを見る" icon="shopping" variant="secondary" onPress={() => router.push('/shopping')} />}
+      <View style={s.notice}><AppIcon name="info" /><Text style={s.small}>買い物リストの材料集計は今後対応します。</Text></View>
     </AppScreen>
   );
 }
