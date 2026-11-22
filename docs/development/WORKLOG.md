@@ -79,3 +79,8 @@
 - Day 7 PR #14 は main `69fd4d3fd0a7d1fd6ac0523218b6f6327e2f3afa` にSquashマージ済み。
 - Supabase `iwasaki-hub's Org` に東京リージョンの専用プロジェクト作成を依頼。作成APIが費用確認IDを要求し、`get_cost` は月額$0を報告。金額への明示同意前なので、`confirm_cost`および`create_project`再実行は未実施。
 - `feature/day075-supabase-foundation` に公開設定検証、接続状態確認ヘルパー、環境変数サンプル、ドキュメント、単体テストを追加。Auth・同期・DB更新は未実装でローカル保存を維持。
+
+## Day 7.5 追記（2026-11-22）
+- 月額$0の明示同意を得て、Supabase新規専用プロジェクト `KondateBiyori` (Tokyo `ap-northeast-1`, ref `nrcilifwdkmojguezbln`) 作成。ACTIVE_HEALTHYを確認。
+- Vercel `kondate-biyori` プロジェクトの環境変数作成は403で拒否された。既存の環境設定は変更できていない。
+- PR #15へ設定タブの任意のSupabase接続診断と専用URLの環境変数サンプルを追加。SDK/クラウド保存/Auth/RLSは未実装。
