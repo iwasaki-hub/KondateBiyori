@@ -36,10 +36,6 @@ export default function WeekScreen() {
 
   useEffect(() => {
     let active = true;
-    setStatus('loading');
-    setError('');
-    setNotice('');
-    setPlan(null);
     loadWeek(week).then(result => {
       if (!active) return;
       setPlan(result);
@@ -51,6 +47,21 @@ export default function WeekScreen() {
     });
     return () => { active = false; };
   }, [week, retry]);
+
+  function changeWeek(offset: number) {
+    setStatus('loading');
+    setPlan(null);
+    setError('');
+    setNotice('');
+    setWeek(current => shiftWeek(current, offset));
+  }
+
+  function retryLoad() {
+    setStatus('loading');
+    setPlan(null);
+    setError('');
+    setRetry(value => value + 1);
+  }
 
   async function generate() {
     setError('');
@@ -88,8 +99,8 @@ export default function WeekScreen() {
         <View style={s.row}><AppIcon name="week" /><Text accessibilityRole="header" style={s.heading}>週間献立</Text></View>
         <Text style={styles.period}>{fmt(dates[0])} 〜 {fmt(dates[6])}</Text>
         <View style={styles.navigation}>
-          <View style={styles.navigationButton}><AppButton label="前週" variant="secondary" icon="back" onPress={() => setWeek(w => shiftWeek(w, -1))} disabled={saving} /></View>
-          <View style={styles.navigationButton}><AppButton label="次週" variant="secondary" icon="forward" onPress={() => setWeek(w => shiftWeek(w, 1))} disabled={saving} /></View>
+          <View style={styles.navigationButton}><AppButton label="前週" variant="secondary" icon="back" onPress={() => changeWeek(-1)} disabled={saving} /></View>
+          <View style={styles.navigationButton}><AppButton label="次週" variant="secondary" icon="forward" onPress={() => changeWeek(1)} disabled={saving} /></View>
         </View>
 
         {status === 'loading' ? (
@@ -99,7 +110,7 @@ export default function WeekScreen() {
         ) : status === 'error' ? (
           <View style={styles.section}>
             <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
-            <AppButton label="読み込みを再試行" onPress={() => setRetry(n => n + 1)} />
+            <AppButton label="読み込みを再試行" onPress={retryLoad} />
           </View>
         ) : (
           <View style={styles.section}>
