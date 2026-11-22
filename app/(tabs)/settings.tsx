@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { checkSupabaseHealth, getSupabaseConfig, type ConnectionState } from '../../src/cloud/supabase-config';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AppButton } from '../../src/components/AppButton';
 import { AppCard } from '../../src/components/AppCard';
@@ -20,6 +21,8 @@ export default function SettingsScreen() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [retry, setRetry] = useState(0);
+  const [cloudStatus, setCloudStatus] = useState<ConnectionState | 'checking' | 'invalid'>('unconfigured');
+  const [cloudError, setCloudError] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -35,6 +38,18 @@ export default function SettingsScreen() {
     });
     return () => { active = false; };
   }, [retry]);
+
+  async function checkCloudConnection() {
+    setCloudStatus('checking');
+    setCloudError('');
+    try {
+      const config = getSupabaseConfig();
+      setCloudStatus(await checkSupabaseHealth(config));
+    } catch {
+      setCloudStatus('invalid');
+      setCloudError('環境変数の設定が不正です。Supabase URLと公開可能キーを確認してください。');
+    }
+  }
 
   function update<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
     setDraft(previous => ({ ...previous, [key]: value }));
@@ -111,6 +126,17 @@ export default function SettingsScreen() {
             <AppButton label={saving ? '保存中…' : 'この端末に保存'} disabled={saving} onPress={handleSave} />
           </View>
         )}
+      </AppCard>
+      <AppCard>
+        <Text accessibilityRole="header" style={s.heading}>Supabase接続（Day 7.5）</Text>
+        <Text style={s.body}>クラウドの接続確認のみ提供しています。ログイン・同期・クラウド保存はまだ有効ではありません。</Text>
+        <Text accessibilityRole="status" style={s.small}>{cloudStatus === 'checking' ? '接続を確認中…' :
+          cloudStatus === 'reachable' ? 'Supabaseに接続できました（認証・同期は未検証）' :
+          cloudStatus === 'unreachable' ? 'Supabaseに到達できませんでした。通信環境を確認してください。' :
+          cloudStatus === 'invalid' ? '接続設定にエラーがあります。' : '未設定：端末内保存のみ利用できます。'}</Text>
+        {cloudError ? <Text accessibilityRole="alert" style={styles.error}>{cloudError}</Text> : null}
+        <AppButton label={cloudStatus === 'checking' ? '確認中…' : 'Supabase接続を確認'}
+          disabled={cloudStatus === 'checking'} variant="secondary" onPress={checkCloudConnection} />
       </AppCard>
       <AppCard>
         <Text accessibilityRole="header" style={s.heading}>利用プラン</Text>
