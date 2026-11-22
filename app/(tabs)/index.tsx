@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppButton } from '../../src/components/AppButton';
 import { AppCard } from '../../src/components/AppCard';
 import { AppIcon } from '../../src/components/AppIcon';
 import { AppScreen } from '../../src/components/AppScreen';
+import { RecipeDetail } from '../../src/components/RecipeDetail';
 import { getSiteMetadata } from '../../src/config/siteMetadata';
 import type { MealPlan } from '../../src/data/recipe-schema';
 import { recipes } from '../../src/data/recipes';
@@ -33,6 +34,7 @@ export default function WeekScreen() {
   const [notice, setNotice] = useState('');
   const [retry, setRetry] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -49,6 +51,7 @@ export default function WeekScreen() {
   }, [week, retry]);
 
   function changeWeek(offset: number) {
+    setSelectedDate(null);
     setStatus('loading');
     setPlan(null);
     setError('');
@@ -76,6 +79,7 @@ export default function WeekScreen() {
         !recipe.ingredients.some(item => excluded.some(word => item.name.includes(word))));
       const next = makeSampleWeek(week, candidates, profile.adults + profile.children);
       await saveWeek(week, next);
+      setSelectedDate(null);
       setPlan(next);
       setNotice('サンプル献立を端末に保存しました。');
     } catch (e) {
@@ -88,6 +92,8 @@ export default function WeekScreen() {
   }
 
   const dates = weekDates(week);
+  const selectedItem = plan?.find(item => item.date === selectedDate);
+  const selectedRecipe = selectedItem ? recipes.find(item => item.id === selectedItem.recipe_id) : undefined;
   return (
     <AppScreen>
       <View style={s.header}>
@@ -95,7 +101,9 @@ export default function WeekScreen() {
         <Text accessibilityRole="header" style={s.title}>こんだて日和</Text>
         <Text style={s.body}>一週間の夕食を、まとめて眺められます。</Text>
       </View>
-      <AppCard>
+      {selectedItem && selectedRecipe ? (
+        <RecipeDetail key={selectedDate} recipe={selectedRecipe} initialServings={selectedItem.servings} onClose={() => setSelectedDate(null)} />
+      ) : <AppCard>
         <View style={s.row}><AppIcon name="week" /><Text accessibilityRole="header" style={s.heading}>週間献立</Text></View>
         <Text style={styles.period}>{fmt(dates[0])} 〜 {fmt(dates[6])}</Text>
         <View style={styles.navigation}>
@@ -125,7 +133,12 @@ export default function WeekScreen() {
               const item = plan?.[i];
               const recipe = item ? recipes.find(r => r.id === item.recipe_id) : undefined;
               return (
-                <View key={date} style={styles.dayRow}>
+                <Pressable key={date} style={({ pressed }) => [styles.dayRow, pressed && item && styles.dayRowPressed]}
+                  accessibilityRole={item ? 'button' : undefined}
+                  accessibilityLabel={item && recipe ? `${DAYS[i]}曜日 ${fmt(date)} ${recipe.name}のレシピ詳細を見る` : undefined}
+                  accessibilityState={{ disabled: !item || !recipe }}
+                  disabled={!item || !recipe}
+                  onPress={() => setSelectedDate(date)}>
                   <View style={styles.dayLabel}>
                     <Text style={styles.dayName}>{DAYS[i]}</Text>
                     <Text style={styles.date}>{fmt(date)}</Text>
@@ -134,7 +147,8 @@ export default function WeekScreen() {
                     <Text style={styles.mealTitle}>{recipe?.name ?? '未設定'}</Text>
                     {recipe ? <Text style={s.small}>{recipe.cookingMinutes}分・{item?.servings}人分</Text> : null}
                   </View>
-                </View>
+                  {recipe ? <Text style={styles.openDetail}>詳細 ›</Text> : null}
+                </Pressable>
               );
             })}
             {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
@@ -144,9 +158,9 @@ export default function WeekScreen() {
             <Text style={s.small}>AIは使用していません。食品アレルギーの安全性は保証できないため、原材料表示などを確認してください。</Text>
           </View>
         )}
-      </AppCard>
-      <AppButton label="買い物リストを見る" icon="shopping" variant="secondary" onPress={() => router.push('/shopping')} />
-      <View style={s.notice}><AppIcon name="info" /><Text style={s.small}>レシピの詳細や献立の差し替え、買い物リスト集計は今後対応します。</Text></View>
+      </AppCard>}
+      {!selectedItem && <AppButton label="買い物リストを見る" icon="shopping" variant="secondary" onPress={() => router.push('/shopping')} />}
+      <View style={s.notice}><AppIcon name="info" /><Text style={s.small}>献立の差し替えと買い物リスト集計は今後対応します。</Text></View>
     </AppScreen>
   );
 }
@@ -160,6 +174,8 @@ const styles = StyleSheet.create({
   dayRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md,
     borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm,
     paddingVertical: spacing.md, paddingHorizontal: spacing.md, minHeight: 64 },
+  dayRowPressed: { backgroundColor: colors.soft },
+  openDetail: { ...typography.small, color: colors.primary, fontWeight: '700' },
   dayLabel: { width: 58, alignItems: 'center', gap: spacing.xs },
   dayName: { ...typography.label, color: colors.primary },
   date: { ...typography.small, color: colors.muted },
