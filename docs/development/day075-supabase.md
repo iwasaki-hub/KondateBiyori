@@ -1,29 +1,39 @@
-# Day 7.5 — Supabase接続基盤（段階導入）
+# Day 7.5 — Supabase接続基盤（2026-11-22）
 
-## 接続先
-- 組織: iwasaki-hub's Org（承認済み）
-- 新規専用プロジェクト: KondateBiyori
-- リージョン: ap-northeast-1（東京）
-- **プロジェクト作成: 費用確認 $0/月への明示同意待ち。まだ未作成。**
-- 既存のnext-app、typing-app、LittleDiaryプロジェクトは変更禁止。
+## 新規プロジェクトの作成結果
+- **作成済み**: KondateBiyori / iwasaki-hub's Org / ap-northeast-1（東京）
+- Project ref: `nrcilifwdkmojguezbln`
+- URL: `https://nrcilifwdkmojguezbln.supabase.co`
+- Supabase API `get_project`: `ACTIVE_HEALTHY` を確認
+- `sb_publishable_` 形式の公開可能キーが有効であることを確認した（実値はリポジトリに記載しない）
+- 作成の見積り: 月額 $0。ユーザーの明示同意後に作成。
+- 既存の next-app / typing-app / LittleDiary を変更していない。
 
-## このPRの範囲
-- Expo Web/iOSで使用する公開設定（URLとsb_publishable_公開キー）の入力検証
-- 外部データを送信しないAuthヘルスチェック補助関数。到達可能性のみの確認で認証・RLSの成功は意味しない
-- `.env.example` に環境変数名を示す。実際の鍵・URLはVercelなど各環境の設定で管理
-- 従来の家族設定・週次献立は引き続きlocalStorage/SQLite KVにのみ保存。ログインもデータ同期もまだ行わない
-- 既存ユーザーのローカルデータをリモートに自動アップロードしない
+## 本PRで導入するもの
+- Expo Web/Native向けの任意環境設定 `EXPO_PUBLIC_SUPABASE_URL` と `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` の形式検証
+- 接続状態を確認する `auth/v1/health` の軽量GETリクエスト、設定タブから手動実行
+- レシピ/家族設定/週別献立は従来どおり端末の `localStorage` / `expo-sqlite/kv-store` に保存
+- 通信失敗時も既存のデータに影響しない。ローカルデータのアップロードは実行しない
+- 純粋関数テストと既存CIへ接続設定検査を追加
 
-## 後続の安全な工程（別PRを推奨）
-1. 新規プロジェクトを作成・ACTIVE_HEALTHY確認、publishable keyとURLを取得
-2. `@supabase/supabase-js` を互換バージョンで固定し、npm lockfileと共に追加。Web/Nativeのsession storage、Auth、ログイン・ログアウトと通信失敗時のUXを実装
-3. 家族設定と週別献立の表・行単位RLSを作り隔離テスト。所有者ID=auth.uid()、anon拒否、SELECT/INSERT/UPDATE/DELETEをA/Bで検証
-4. マイグレーション・リアルユーザーの保存操作はテスト後、明示承認を得てから実施
-5. オフライン競合、端末内データの移行方針、アカウント削除と同期の境界を決める
+## 接続設定（必要な手動操作）
+- Vercelの `kondate-biyori` プロジェクトに対し、環境変数の作成APIが **403 forbidden** を返した。アプリ側からの自動登録は実行できていない
+- Vercel → kondate-biyori → Settings → Environment Variables で Preview と Production に次の2つを設定し、該当ブランチを再デプロイする
+  - `EXPO_PUBLIC_SUPABASE_URL=https://nrcilifwdkmojguezbln.supabase.co`
+  - `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=` （Supabase Dashboard → Project Settings → API Keys の `sb_publishable_` からコピー）
+- ローカル開発環境では同じ2変数を `.env.local` に設定する。環境変数はExpoのビルド時に埋め込まれる
+- 設定タブの「Supabase接続を確認」で「到達できました」が出ても、認証・RLS・同期を保証するものではない
+- **secret/service_role/DBパスワードを `EXPO_PUBLIC_*` に入れない**
 
-## セキュリティ
-- `EXPO_PUBLIC_*` は公開情報。service_role / sb_secret_ / DBパスワードを設定しない
-- Supabaseの公開鍵は認可を担わない。RLSによりユーザー本人の行だけ閲覧・書き込み可にする
-- RLSの無い表をData APIへ公開しない。認証情報のログ出力禁止
-- 適用する変更は専用Supabaseプロジェクトのみ。既存のプロジェクトには一切変更しない
-- npm依存追加はネットワークおよびlockfile生成が可能な環境で安全に行い、バージョンを固定する
+## 次工程（本PRでは未実装）
+- `@supabase/supabase-js` と対応する認証用session storageの安全な依存バージョンをピン留めし、lockfileを同時更新
+- 認証 UI、メール確認、ログイン継続・ログアウト
+- 家族プロフィール・週別献立テーブル、所有者限定RLSとA/B別ユーザー認証・CRUDテスト
+- 既存端末データのクラウド移行/マージ時の競合解決
+- マイグレーション/クラウドデータ保存は別PR・安全検証後に実施
+- npmレジストリの名前解決が作業コンテナから失敗したため、依存追加やlockfile更新を無理に実施していない
+
+## 制約
+- Expoは `EXPO_PUBLIC_*` をクライアントに公開する。公開キーの安全性はRLS設計が前提
+- サンプル献立機能は既存のローカル保存のままで、クラウドへの書込みは行われない
+- Web静的出力を維持し、有料サービス/署名/本番データの変更は行わない
