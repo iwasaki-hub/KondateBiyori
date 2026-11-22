@@ -69,3 +69,8 @@
 - Day 6ブランチ `feature/day06-recipe-detail` で週の料理行→詳細の開閉、レシピ名・時間・材料・手順、人数に応じた表示上の分量変更、数量/単位のテストを追加。
 - 単位は元のまま、計算結果は小数第2位まで。保存済み献立の変更とDay 7の献立差し替えは対象外。
 - CI/Preview/実機はPRで別途検証。明示指示なしのマージはしない。
+
+## Day 7（2026-11-22）
+- Day 6のPR [#13](https://github.com/iwasaki-hub/KondateBiyori/pull/13) をSquashマージ済み（`c7811d3103c75d7277aaded4598dccef82eca485`）。
+- Day 7: 週間献立のレシピ詳細から選択日だけ別候補に差し替えるUI、確認・キャンセル、保存失敗時の元プラン保護と純粋関数テストを `feature/day07-replace-one-meal` に追加。
+- 既存のレシピ台帳10件と週別ローカル保存を再利用。サンプルからの候補選択のみ、AIなし。CI、Preview、iPhone実機の結果は実PRに記録。
