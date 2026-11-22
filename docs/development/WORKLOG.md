@@ -53,3 +53,8 @@
 - GitHub Actionsは検証用、VercelはWeb版のProduction/Preview、Expo EASはiOSクラウドビルド。Vercelへのマージ後自動反映とEASの手動ビルドを区別する。
 - LittleDiaryやその他の外部プロジェクト、Supabase、課金、Apple署名、EAS Submit/Updateにはこの記録整備作業で触れない。
 - 次回開始手順とDay 3の受け入れ条件は [HANDOFF.md](HANDOFF.md) を参照する。
+
+## Day 3 / Day 4 の追記（2026-11-22）
+
+- Day 3: PR [#10](https://github.com/iwasaki-hub/KondateBiyori/pull/10) をSquashマージ。レシピ10件・型・ID/単位検証。マージSHA `856ce2dde8979a30b1cadb4af739cea061d2bb27`。マージ前CIとVercelステータスは成功。
+- Day 4: 家族プロフィール（大人/子ども、時間、苦手/除外食材）の検証と端末内保存を専用ブランチへ追加。保存はiOS/Android SQLite KV、Web localStorage（ブラウザごと）。CI/Preview・実機の結果はPRで追記する。Day 5は未着手。
