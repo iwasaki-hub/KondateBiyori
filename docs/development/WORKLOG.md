@@ -63,3 +63,9 @@
 - Day 4 PR [#11](https://github.com/iwasaki-hub/KondateBiyori/pull/11) はSquashマージ済み（`a111ff42ece2011cfeba0846fe5f7bb2ecf912b5`）。
 - Day 5: 月〜日7日表示、前週/次週、週単位のローカル永続化、AIなしのサンプル献立、純粋関数テストを `feature/day05-weekly-meal-plan` へ追加。
 - CI / Vercel Preview / 実機テストの結果はPR本文に記録する。Day 6には未着手。
+
+## Day 6（2026-11-22）
+- Day 5のPR [#12](https://github.com/iwasaki-hub/KondateBiyori/pull/12) はSquashマージ（`7a5c36337af8f37d19af655170fd2f01c7ff5310`）。
+- Day 6ブランチ `feature/day06-recipe-detail` で週の料理行→詳細の開閉、レシピ名・時間・材料・手順、人数に応じた表示上の分量変更、数量/単位のテストを追加。
+- 単位は元のまま、計算結果は小数第2位まで。保存済み献立の変更とDay 7の献立差し替えは対象外。
+- CI/Preview/実機はPRで別途検証。明示指示なしのマージはしない。
